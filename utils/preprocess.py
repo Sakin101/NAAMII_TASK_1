@@ -16,12 +16,12 @@ def gaussian_segment_bones(volume,sigma,threshold):
     mask = binary_opening(mask, structure=np.ones((3,3,3))).astype(np.uint8)
     return mask
 def segment_bones_with_bilateral_filter(ct_volume,
-                                        diameter=9,
-                                        sigma_col=35,
-                                        sigma_sp=15,
-                                        low_threshold=125,
+                                        diameter=35,
+                                        sigma_col=20,
+                                        sigma_sp=5,
+                                        low_threshold=90,
                                         high_threshold=250,
-                                        min_voxel_size=500):
+                                        min_voxel_size=20000):
     clipped = np.clip(ct_volume, -1000, 1500)  # Example HU range for bone CT
     volume_min, volume_max = np.min(clipped), np.max(clipped)
     norm_volume = ((clipped - volume_min) / (volume_max - volume_min)).astype(np.float32)
@@ -38,6 +38,7 @@ def segment_bones_with_bilateral_filter(ct_volume,
     structure = generate_binary_structure(3, 2)
     propagated_mask = binary_propagation(weak_mask, mask=strong_mask, structure=structure)
     full_mask = np.logical_or(strong_mask, propagated_mask)
+
     cleaned_mask = binary_opening(full_mask, structure=np.ones((3, 3, 3)))
     labeled_mask, num_labels = label(cleaned_mask)
     sizes = nd_sum(cleaned_mask, labeled_mask, index=np.arange(num_labels + 1))
